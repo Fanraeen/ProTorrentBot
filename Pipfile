@@ -8,7 +8,7 @@ pylint = "*"
 autopep8 = "*"
 
 [packages]
-requests = "*"
+requests = {extras = ["socks"], version = "*"}
 bs4 = "*"
 aiogram = "*"
 uvloop = "*"
@@ -16,6 +16,7 @@ ujson = "*"
 cchardet = "*"
 aiodns = "*"
 aiohttp = "*"
+lxml = "*"
 
 [requires]
 python_version = "3.8"
