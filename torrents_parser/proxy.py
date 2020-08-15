@@ -15,6 +15,9 @@ def read_proxy():
             continue
         else:
             return proxies
+    
+    print('NONE PROXY')
+    return None
 
 
 
