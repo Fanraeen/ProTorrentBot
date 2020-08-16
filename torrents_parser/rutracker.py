@@ -1,10 +1,10 @@
 from requests import Session
 from bs4 import BeautifulSoup
-from proxy import read_proxy
+from torrents_parser.proxy import read_proxy
 import pickle
 
-from exceptions import LoginError
-from login_data import RUTRACKER_LOGIN, HEADERS, RUTRACKER
+from torrents_parser.exceptions import LoginError
+from torrents_parser.login_data import *
 
 
 def get_captcha(page):
@@ -42,7 +42,7 @@ class RuTracker:
             return self.session
 
         try:
-            with open('sessions/rutracker', 'rb') as f:
+            with open('torrents_parser/sessions/rutracker', 'rb') as f:
                 self.session.cookies.update(pickle.load(f))
         except FileNotFoundError:
             pass
@@ -77,7 +77,7 @@ class RuTracker:
         rutracker_data = []
         if not self.auth:
             raise LoginError('Please user login() before')
-        proxies = read_proxy()
+        proxies = read_proxy(check=False)
         search_data = self.session.get(url='https://rutracker.org/forum/tracker.php',
                                        params={'nm': q_str},
                                        proxies=proxies,
@@ -94,9 +94,16 @@ class RuTracker:
                 check_status = True
 
             elem_info = elem.find('a', {'class': 'tLink'})
-            link = elem_info.attrs['href']
+            try:
+                link = elem_info.attrs['href']
+            except AttributeError:
+                continue
+
             name = elem_info.get_text(strip=True)
-            size = elem.find('a', {'class': 'dl-stub'}).get_text(strip=True)
+            try:
+                size = elem.find('a', {'class': 'dl-stub'}).get_text(strip=True)
+            except AttributeError:
+                size = 'None :()'
             try:
                 seedmed = elem.find('b', {'class': 'seedmed'}).contents[0]
             except AttributeError:
@@ -112,22 +119,28 @@ class RuTracker:
 
         return rutracker_data
 
-    def torrent_details(self, link: str):
+    def torrent_details(self, torrent_id: int, link=None):
         if not self.auth:
             raise LoginError('For see torrent details - login()')
         proxies = read_proxy(check=False)
-        torrent_page = self.session.get(url='https://rutracker.org/forum/{}'.format(link),
+        torrent_page = self.session.get(url='https://rutracker.org/forum/viewtopic.php?t={}'.format(torrent_id),
                                         proxies=proxies,
                                         headers=HEADERS)
         soup = BeautifulSoup(torrent_page.content, 'lxml')
+        seed = soup.find('span', {'class': 'seed'}).find('b').string
         post_wrap = soup.find('div', {'class': 'post_wrap'})
         
         with open('index.html', 'w') as f:
             f.write(soup.prettify())
 
-        torrent_details_data = {}
         image = post_wrap.find('var', {'class': 'postImg'}).attrs['title']
+        torrent_file_url = post_wrap.find('a', {'class': 'dl-stub dl-link dl-topic'}).attrs['href']
+        magnet_link = post_wrap.find('a', {'class': 'med magnet-link'}).attrs['href']
 
+        torrent_details_data = {}
+        torrent_details_data['seed'] = seed
+        torrent_details_data['.torrent'] = 'rutracker.org/forum/' + torrent_file_url
+        torrent_details_data['magnet_link'] = 'https://rutracker.org/forum/' + magnet_link
         if image[-3:] in ['png', 'jpg']:
             pass
         else:
@@ -158,10 +171,5 @@ class RuTracker:
             torrent_details_data['description'] = description
             torrent_details_data['image'] = image 
 
-        print(torrent_details_data)
+        return torrent_details_data
 
-
-
-rutracker_user = RuTracker()
-rutracker_user.login()
-rutracker_user.torrent_details('viewtopic.php?t=5881555')

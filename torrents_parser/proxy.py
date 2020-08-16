@@ -2,7 +2,7 @@ from requests import get
 from requests.exceptions import ProxyError
 
 def read_proxy(check=True):
-    proxy_file = open('proxy.txt', 'r')
+    proxy_file = open('torrents_parser/proxy.txt', 'r')
     for line in proxy_file.readlines():
         proxy_line = 'socks5://{}'.format(line[:len(line)])
         proxies = {
