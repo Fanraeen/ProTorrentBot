@@ -4,3 +4,4 @@ __pycache__/
 proxy.txt
 login_data.py
 *.html
+sessions/
