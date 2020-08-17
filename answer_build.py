@@ -6,15 +6,19 @@ rutracker_user.login()
 
 def details_build_text(torrent_id: int):
     details_data = rutracker_user.torrent_details(torrent_id=torrent_id)
-    print(details_data)
     message = '''{description}
-🤝 **{seed} сидов**
+🤝 <b>{seed} сидов</b>
     '''.format(
         description=details_data['description'],
         seed=details_data['seed']
     )
 
     return message
+
+
+def torrent_file_path(torrent_id: int):
+    path_to_file = rutracker_user.download_file(torrent_id=torrent_id)
+    return path_to_file
 
 
 def search_build_text(q_str: str, count=10):
@@ -31,8 +35,8 @@ def search_build_text(q_str: str, count=10):
             check = 'Не проверено 🚫'
         now_message = '''{name} 
 {check}
-💾 **{size}**
-🤝 **{seed} сидов**
+💾 <b>{size}</b>
+🤝 <b>{seed} сидов</b>
 /torrent{torrent_id}
         '''.format(
             name=elem['name'],

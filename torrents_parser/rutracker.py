@@ -37,7 +37,7 @@ class RuTracker:
         self.session = Session()
         self.auth = False
 
-    def login(self):
+    def login(self, check_proxy=False):
         if self.auth:
             return self.session
 
@@ -50,7 +50,7 @@ class RuTracker:
             self.auth = True
             return self.session
 
-        proxies = read_proxy()
+        proxies = read_proxy(check=check_proxy)
         server_login = self.session.post(url='http://rutracker.org/forum/login.php',
                                          data=RUTRACKER_LOGIN,
                                          proxies=proxies,
@@ -73,11 +73,11 @@ class RuTracker:
             with open('sessions/rutracker', 'wb') as f:
                 pickle.dump(self.session.cookies, f)
 
-    def search(self, q_str: str):
+    def search(self, q_str: str, check_proxy=False):
         rutracker_data = []
         if not self.auth:
             raise LoginError('Please user login() before')
-        proxies = read_proxy(check=False)
+        proxies = read_proxy(check=check_proxy)
         search_data = self.session.get(url='https://rutracker.org/forum/tracker.php',
                                        params={'nm': q_str},
                                        proxies=proxies,
@@ -119,10 +119,10 @@ class RuTracker:
 
         return rutracker_data
 
-    def torrent_details(self, torrent_id: int, link=None):
+    def torrent_details(self, torrent_id: int, link=None, check_proxy=False):
         if not self.auth:
             raise LoginError('For see torrent details - login()')
-        proxies = read_proxy(check=False)
+        proxies = read_proxy(check=check_proxy)
         torrent_page = self.session.get(url='https://rutracker.org/forum/viewtopic.php?t={}'.format(torrent_id),
                                         proxies=proxies,
                                         headers=HEADERS)
@@ -163,7 +163,7 @@ class RuTracker:
             if len(next_elem) <= 3:
                 continue
 
-            description+=('**{}** {}\n'.format(
+            description+=('<b>{}</b> {}\n'.format(
                 span.get_text(strip=True),
                 next_elem
             ))
@@ -172,4 +172,22 @@ class RuTracker:
             torrent_details_data['image'] = image 
 
         return torrent_details_data
+
+
+    def download_file(self, torrent_id: int, check_proxy=False):
+        proxies = read_proxy()
+        if not self.auth:
+            raise LoginError('For donwload file - login()')
+        torrent_file = self.session.get(url='https://rutracker.org/forum/dl.php?t={}'.format(torrent_id),
+                                        proxies=proxies,
+                                        headers=HEADERS)
+        file_path = f'torrents_parser/temp/{torrent_id}.torrent'
+        try:
+            open(file_path, 'wb').write(torrent_file.content)
+        except:
+            return None
+        else:
+            return file_path
+
+                
 
