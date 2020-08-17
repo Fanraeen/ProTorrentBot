@@ -5,3 +5,4 @@ proxy.txt
 login_data.py
 *.html
 sessions/
+temp/
