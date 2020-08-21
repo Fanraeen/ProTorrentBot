@@ -9,12 +9,13 @@ from config import BOT_TOKEN
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
 
+
 # Start command
-
-
 @dp.message_handler(commands=['start'])
 async def start_command(message: types.Message):
-    await bot.send_message(chat_id=message.chat.id, text='Привет, это бот для поиска по торрент-трекерам.\n_Просто напиши..._', parse_mode='markdown')
+    await bot.send_message(chat_id=message.chat.id,
+                           text='Привет, это бот для поиска по торрент-трекерам.\n_Просто напиши..._',
+                           parse_mode='markdown')
 
 
 @dp.callback_query_handler(lambda callback_query: callback_query.data.startswith('file'))

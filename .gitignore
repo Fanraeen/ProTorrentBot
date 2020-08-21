@@ -6,3 +6,4 @@ login_data.py
 *.html
 sessions/
 temp/
+.idea/

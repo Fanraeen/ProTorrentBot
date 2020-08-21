@@ -60,8 +60,7 @@ class RuTracker:
             if auth_status == 'need captcha':
                 captcha_data = get_captcha(server_login)
                 RUTRACKER_LOGIN['cap_sid'] = captcha_data['cap_sid']
-                RUTRACKER_LOGIN[captcha_data['cap_code']
-                                ] = captcha_data['captcha_code']
+                RUTRACKER_LOGIN[captcha_data['cap_code']] = captcha_data['captcha_code']
                 server_login = self.session.post(url='https://rutracker.org/forum/login.php',
                                                  data=RUTRACKER_LOGIN,
                                                  proxies=proxies,
@@ -119,17 +118,17 @@ class RuTracker:
 
         return rutracker_data
 
-    def torrent_details(self, torrent_id: int, link=None, check_proxy=False):
+    def torrent_details(self, torrent_id: int, check_proxy=False):
         if not self.auth:
             raise LoginError('For see torrent details - login()')
         proxies = read_proxy(check=check_proxy)
-        torrent_page = self.session.get(url='https://rutracker.org/forum/viewtopic.php?t={}'.format(torrent_id),
+        torrent_page = self.session.get(url=f'https://rutracker.org/forum/viewtopic.php?t={torrent_id}',
                                         proxies=proxies,
                                         headers=HEADERS)
         soup = BeautifulSoup(torrent_page.content, 'lxml')
         seed = soup.find('span', {'class': 'seed'}).find('b').string
         post_wrap = soup.find('div', {'class': 'post_wrap'})
-        
+
         with open('index.html', 'w') as f:
             f.write(soup.prettify())
 
@@ -153,26 +152,25 @@ class RuTracker:
             next_elem = span.next_sibling
             if next_elem == ': ':
                 next_elem = next_elem.next_element
-                
+
                 if next_elem.name == 'br':
                     next_elem = next_elem.next_element
 
                 if next_elem.name is not None:
                     next_elem = next_elem.string
-            
+
             if len(next_elem) <= 3:
                 continue
 
-            description+=('<b>{}</b> {}\n'.format(
+            description += ('<b>{}</b> {}\n'.format(
                 span.get_text(strip=True),
                 next_elem
             ))
 
             torrent_details_data['description'] = description
-            torrent_details_data['image'] = image 
+            torrent_details_data['image'] = image
 
         return torrent_details_data
-
 
     def download_file(self, torrent_id: int, check_proxy=False):
         proxies = read_proxy()
@@ -188,6 +186,3 @@ class RuTracker:
             return None
         else:
             return file_path
-
-                
-
