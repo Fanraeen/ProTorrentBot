@@ -17,6 +17,7 @@ cchardet = "*"
 aiodns = "*"
 aiohttp = "*"
 lxml = "*"
+pipfile = "*"
 
 [requires]
 python_version = "3"
